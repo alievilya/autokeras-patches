@@ -11,18 +11,25 @@ import json
 from os.path import isfile, join
 from sklearn.model_selection import train_test_split
 from keras.utils import plot_model
-
+from sklearn.metrics import roc_auc_score
+from keras.callbacks import Callback
 
 def load_images(size=120, is_train=True):
 
-    file_path='C:/Users/aliev/Documents/GitHub/nas-fedot/10cls_Generated_dataset'
-    with open('C:/Users/aliev/Documents/GitHub/nas-fedot/dataset_files/10_labels.json', 'r') as fp:
+    # file_path='C:/Users/aliev/Documents/GitHub/nas-fedot/10cls_Generated_dataset'
+    # with open('C:/Users/aliev/Documents/GitHub/nas-fedot/dataset_files/labels_10.json', 'r') as fp:
+    #     labels_dict = json.load(fp)
+    # with open('C:/Users/aliev/Documents/GitHub/nas-fedot/dataset_files/encoded_labels_10.json', 'r') as fp:
+    #     encoded_labels = json.load(fp)
+
+    file_path='C:/Users/aliev/Documents/GitHub/nas-fedot/Generated_dataset'
+    with open('C:/Users/aliev/Documents/GitHub/nas-fedot/dataset_files/labels.json', 'r') as fp:
         labels_dict = json.load(fp)
-    with open('C:/Users/aliev/Documents/GitHub/nas-fedot/dataset_files/10_encoded_labels.json', 'r') as fp:
+    with open('C:/Users/aliev/Documents/GitHub/nas-fedot/dataset_files/encoded_labels.json', 'r') as fp:
         encoded_labels = json.load(fp)
     Xarr = []
     Yarr = []
-    number_of_classes = 10
+    number_of_classes = 3
     files = [f for f in os.listdir(file_path) if isfile(join(file_path, f))]
     files.sort()
     for filename in files:
@@ -66,7 +73,7 @@ print(y_train[:3])  # array([7, 2, 1], dtype=uint8)
 
 
 clf = ak.ImageClassifier(
-    num_classes=10,
+    num_classes=3,
     multi_label=False,
     loss=None,
     metrics=None,
@@ -76,12 +83,46 @@ clf = ak.ImageClassifier(
     overwrite=True
 )
 
+class RocCallback(Callback):
+    def __init__(self,training_data,validation_data):
+        self.x = training_data[0]
+        self.y = training_data[1]
+        self.x_val = validation_data[0]
+        self.y_val = validation_data[1]
+
+
+    def on_train_begin(self, logs={}):
+        return
+
+    def on_train_end(self, logs={}):
+        return
+
+    def on_epoch_begin(self, epoch, logs={}):
+        return
+
+    def on_epoch_end(self, epoch, logs={}):
+        y_pred_train = self.model.predict(self.x)
+        roc_train = roc_auc_score(self.y, y_pred_train)
+        y_pred_val = self.model.predict(self.x_val)
+        roc_val = roc_auc_score(self.y_val, y_pred_val)
+        print('\rroc-auc_train: %s - roc-auc_val: %s' % (str(round(roc_train,4)),str(round(roc_val,4))),end=100*' '+'\n')
+        return
+
+    def on_batch_begin(self, batch, logs={}):
+        return
+
+    def on_batch_end(self, batch, logs={}):
+        return
+
+roc = RocCallback(training_data=(x_train, y_train),
+                  validation_data=(x_test, y_test))
 clf.fit(
     x_train,
     y_train,
     # Split the training data and use the last 15% as validation data.
     validation_split=0.2,
     epochs=5,
+    callbacks=[roc],
 )
 
 # Predict with the best model.
