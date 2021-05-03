@@ -127,7 +127,7 @@ clf.fit(
 
 # Predict with the best model.
 predicted_y = clf.predict(x_test)
-print(predicted_y)
+# print(predicted_y)
 
 # Evaluate the best model with testing data.
 print(clf.evaluate(x_test, y_test))
