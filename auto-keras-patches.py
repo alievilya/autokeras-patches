@@ -77,7 +77,7 @@ clf = ak.ImageClassifier(
     multi_label=False,
     loss=None,
     metrics=None,
-    max_trials=20,
+    max_trials=2,
     directory=None,
     objective="val_loss",
     overwrite=True
@@ -127,7 +127,7 @@ clf.fit(
 
 # Predict with the best model.
 predicted_y = clf.predict(x_test)
-print(predicted_y)
+# print(predicted_y)
 
 # Evaluate the best model with testing data.
 print(clf.evaluate(x_test, y_test))
