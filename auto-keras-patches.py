@@ -69,18 +69,21 @@ x_train, x_test = x_train / 255.0, x_test / 255.0
 print(y_train.shape)  # (60000,)
 print(y_train[:3])  # array([7, 2, 1], dtype=uint8)
 
-
-
-
-clf = ak.ImageClassifier(
-    num_classes=3,
-    multi_label=False,
-    loss=None,
-    metrics=None,
-    max_trials=2,
+input_node = ak.ImageInput()
+output_node = ak.ConvBlock()(input_node)
+output_node = ak.DenseBlock()(output_node)
+output_node = ak.ClassificationHead(num_classes=3,
+                                    multi_label=False,
+                                    loss=None,
+                                    metrics=None,)(output_node)
+clf = ak.AutoModel(
+    inputs=input_node,
+    outputs=output_node,
+    max_trials=100,
     directory=None,
     objective="val_loss",
-    overwrite=True
+    overwrite=False,
+    tuner='bayesian'
 )
 
 class RocCallback(Callback):
